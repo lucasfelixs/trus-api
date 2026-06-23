@@ -4,10 +4,127 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  name String
+  avatarUrl String?
+  googleId String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trips Trip[]
+  reviews Review[]
+  savedItineraries SavedItinerary[]
+
+  @@map("users")
+}
+
+model Trip {
+  id String @id @default(uuid())
+  title String
+  destination String?
+  startDate DateTime
+  endDate DateTime
+  coverImageUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId String
+
+  itineraries Itinerary[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("trips")
+}
+
+model Itinerary {
+  id String @id @default(uuid())
+  title String
+  description String?
+  shareToken String @unique @default(uuid())
+  publishedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tripId String
+
+  reviews Review[]
+  itineraryDays ItineraryDay[]
+  savedItineraries SavedItinerary[]
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@map("itineraries")
+}
+
+model ItineraryDay {
+  id String @id @default(uuid())
+  title String? 
+  date DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  itineraryId String
+
+  itineraryStops ItineraryStop[]
+  itinerary Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+
+  @@index([itineraryId])
+  @@map("itinerary_days")
+}
+
+model ItineraryStop {
+  id String @id @default(uuid())
+  name String
+  googlePlaceId String
+  location String
+  order Int
+  note String?
+  scheduledTime DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  itineraryDayId String
+
+  itineraryDay ItineraryDay @relation(fields: [itineraryDayId], references: [id], onDelete: Cascade)
+
+  @@index([itineraryDayId])
+  @@map("itinerary_stops")
+}
+
+model Review {
+  id String @id @default(uuid())
+  rating Int
+  comment String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId String
+  itineraryId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itinerary Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itineraryId])
+  @@index([itineraryId])
+  @@map("reviews")
+}
+
+model SavedItinerary {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now())
+  userId String
+  itineraryId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itinerary Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itineraryId])
+  @@index([itineraryId])
+  @@map("saved_itineraries")
 }
