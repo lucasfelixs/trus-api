@@ -24,6 +24,7 @@ model User {
   trips Trip[]
   reviews Review[]
   savedItineraries SavedItinerary[]
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -127,4 +128,18 @@ model SavedItinerary {
   @@unique([userId, itineraryId])
   @@index([itineraryId])
   @@map("saved_itineraries")
+}
+
+model RefreshToken {
+  id String @id @default(uuid())
+  jti String @unique
+  tokenHash String
+  userId String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
