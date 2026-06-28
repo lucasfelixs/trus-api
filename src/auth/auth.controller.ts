@@ -11,9 +11,9 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { AuthService } from './auth.service';
-import type { Request, Response } from 'express';
-import type { User } from '@prisma/client';
-import type { RefreshTokenUser } from './strategies/jwt-refresh.strategy';
+import { Request, Response } from 'express';
+import { User } from '@prisma/client';
+import { RefreshTokenUser } from './strategies/jwt-refresh.strategy';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Auth')

@@ -1,6 +1,6 @@
-import type { User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
-import type { UpsertUserData, UsersRepository } from './users.repository';
+import { UpsertUserData, UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
