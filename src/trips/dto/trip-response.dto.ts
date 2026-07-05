@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
+
+const toIsoString = ({ value }: { value: Date }): string => value.toISOString();
 
 export class TripResponseDto {
   @ApiProperty({
@@ -30,7 +32,8 @@ export class TripResponseDto {
     format: 'date-time',
   })
   @Expose()
-  declare readonly startDate: Date;
+  @Transform(toIsoString)
+  declare readonly startDate: string;
 
   @ApiProperty({
     description: 'The end date of the trip',
@@ -39,7 +42,8 @@ export class TripResponseDto {
     format: 'date-time',
   })
   @Expose()
-  declare readonly endDate: Date;
+  @Transform(toIsoString)
+  declare readonly endDate: string;
 
   @ApiProperty({
     description: 'The date and time when the trip was created',
@@ -48,7 +52,8 @@ export class TripResponseDto {
     format: 'date-time',
   })
   @Expose()
-  declare readonly createdAt: Date;
+  @Transform(toIsoString)
+  declare readonly createdAt: string;
 
   @ApiProperty({
     description: 'The date and time when the trip was last updated',
@@ -57,5 +62,6 @@ export class TripResponseDto {
     format: 'date-time',
   })
   @Expose()
-  declare readonly updatedAt: Date;
+  @Transform(toIsoString)
+  declare readonly updatedAt: string;
 }

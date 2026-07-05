@@ -145,13 +145,13 @@ describe('TripsController (integration)', () => {
         .expect(404);
     });
 
-    it('returns 403 when fetching a trip owned by another user', async () => {
+    it('returns 404 when fetching a trip owned by another user', async () => {
       const { tripId } = await createOtherUserTrip();
 
       await request(httpServer)
         .get(`/trips/${tripId}`)
         .set('Cookie', accessTokenCookie)
-        .expect(403);
+        .expect(404);
     });
   });
 
@@ -229,14 +229,14 @@ describe('TripsController (integration)', () => {
         .expect(404);
     });
 
-    it('returns 403 when updating a trip owned by another user', async () => {
+    it('returns 404 when updating a trip owned by another user', async () => {
       const { tripId } = await createOtherUserTrip();
 
       await request(httpServer)
         .patch(`/trips/${tripId}`)
         .set('Cookie', accessTokenCookie)
         .send({ title: 'Hijacked' })
-        .expect(403);
+        .expect(404);
     });
   });
 
@@ -267,13 +267,13 @@ describe('TripsController (integration)', () => {
         .expect(404);
     });
 
-    it('returns 403 when deleting a trip owned by another user', async () => {
+    it('returns 404 when deleting a trip owned by another user', async () => {
       const { tripId } = await createOtherUserTrip();
 
       await request(httpServer)
         .delete(`/trips/${tripId}`)
         .set('Cookie', accessTokenCookie)
-        .expect(403);
+        .expect(404);
 
       const stored = await prisma.trip.findUnique({ where: { id: tripId } });
       expect(stored).not.toBeNull();

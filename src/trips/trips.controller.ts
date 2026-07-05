@@ -42,7 +42,10 @@ export class TripsController {
 
   @ApiOperation({ summary: 'Get a trip by ID' })
   @ApiResponse({ status: 200, description: 'Returns a trip by ID' })
-  @ApiResponse({ status: 404, description: 'Trip not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Trip not found or not owned by the current user',
+  })
   @ApiParam({ name: 'tripId', description: 'ID of the trip to retrieve' })
   @Get(':tripId')
   getTripById(
@@ -70,8 +73,10 @@ export class TripsController {
   @ApiResponse({ status: 200, description: 'Trip updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })
-  @ApiResponse({ status: 404, description: 'Trip not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Trip not found or not owned by the current user',
+  })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiParam({ name: 'tripId', description: 'ID of the trip to update' })
   @Patch(':tripId')
@@ -86,8 +91,10 @@ export class TripsController {
   @ApiOperation({ summary: 'Delete a trip by ID' })
   @ApiResponse({ status: 204, description: 'Trip deleted successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })
-  @ApiResponse({ status: 404, description: 'Trip not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Trip not found or not owned by the current user',
+  })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiParam({ name: 'tripId', description: 'ID of the trip to delete' })
   @HttpCode(HttpStatus.NO_CONTENT)

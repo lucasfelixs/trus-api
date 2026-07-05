@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Trip } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { TripNotFoundException } from '../common/exceptions/trip-not-found.exception';
@@ -17,14 +17,8 @@ export class TripsService {
   ): Promise<Trip> {
     const trip = await this.tripsRepository.findById(tripId);
 
-    if (!trip) {
+    if (!trip || trip.userId !== userId) {
       throw new TripNotFoundException(tripId);
-    }
-
-    if (trip.userId !== userId) {
-      throw new ForbiddenException(
-        `You do not have permission to access this trip`,
-      );
     }
 
     return trip;

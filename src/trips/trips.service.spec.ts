@@ -23,10 +23,10 @@ const expectedResponse = (trip: Trip): TripResponseDto => ({
   id: trip.id,
   title: trip.title,
   destination: trip.destination,
-  startDate: trip.startDate,
-  endDate: trip.endDate,
-  createdAt: trip.createdAt,
-  updatedAt: trip.updatedAt,
+  startDate: trip.startDate.toISOString(),
+  endDate: trip.endDate.toISOString(),
+  createdAt: trip.createdAt.toISOString(),
+  updatedAt: trip.updatedAt.toISOString(),
 });
 
 describe('TripsService', () => {
@@ -63,12 +63,12 @@ describe('TripsService', () => {
       );
     });
 
-    it('should throw ForbiddenException when user does not own the trip', async () => {
+    it('should throw TripNotFoundException when user does not own the trip', async () => {
       const trip = buildTrip({ userId: 'other-user-id' });
       repo.findById.mockResolvedValue(trip);
 
       await expect(service.findById('user-id', 'trip-id')).rejects.toThrow(
-        'You do not have permission to access this trip',
+        'Trip trip-id not found',
       );
     });
 
@@ -129,12 +129,12 @@ describe('TripsService', () => {
       );
     });
 
-    it('should throw ForbiddenException when user does not own the trip', async () => {
+    it('should throw TripNotFoundException when user does not own the trip', async () => {
       const trip = buildTrip({ userId: 'other-user-id' });
       repo.findById.mockResolvedValue(trip);
 
       await expect(service.update('user-id', 'trip-id', {})).rejects.toThrow(
-        'You do not have permission to access this trip',
+        'Trip trip-id not found',
       );
     });
 
@@ -162,12 +162,12 @@ describe('TripsService', () => {
       );
     });
 
-    it('should throw ForbiddenException when user does not own the trip', async () => {
+    it('should throw TripNotFoundException when user does not own the trip', async () => {
       const trip = buildTrip({ userId: 'other-user-id' });
       repo.findById.mockResolvedValue(trip);
 
       await expect(service.delete('user-id', 'trip-id')).rejects.toThrow(
-        'You do not have permission to access this trip',
+        'Trip trip-id not found',
       );
     });
 
