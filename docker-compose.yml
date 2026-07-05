@@ -1,0 +1,16 @@
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: trus-postgres-test
+    restart: unless-stopped
+    ports:
+      - '55432:5432'
+    environment:
+      POSTGRES_USER: trus
+      POSTGRES_PASSWORD: trus
+      POSTGRES_DB: trus_test
+    volumes:
+      - trus-postgres-test-data:/var/lib/postgresql/data
+
+volumes:
+  trus-postgres-test-data:

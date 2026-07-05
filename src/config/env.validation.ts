@@ -1,9 +1,19 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsInt, IsString, IsUrl, validateSync } from 'class-validator';
+import {
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUrl,
+  validateSync,
+} from 'class-validator';
 
 export class EnvironmentVariables {
   @IsString()
   declare DATABASE_URL: string;
+
+  @IsOptional()
+  @IsString()
+  declare TEST_DATABASE_URL?: string;
 
   @IsString()
   declare JWT_ACCESS_SECRET: string;

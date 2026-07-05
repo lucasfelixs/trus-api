@@ -21,6 +21,7 @@ async function bootstrap() {
     .setTitle('Trus API')
     .setDescription('Map-based travel itinerary API')
     .setVersion('1.0')
+    .addCookieAuth('access_token')
     .build();
 
   SwaggerModule.setup('api', app, SwaggerModule.createDocument(app, config));
