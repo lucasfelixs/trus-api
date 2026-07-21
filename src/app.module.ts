@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { validate } from './config/env.validation';
 import { AuthModule } from './auth/auth.module';
 import { TripsModule } from './trips/trips.module';
+import { ItineraryModule } from './itinerary/itinerary.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { TripsModule } from './trips/trips.module';
     UsersModule,
     AuthModule,
     TripsModule,
+    ItineraryModule,
   ],
 })
 export class AppModule {}

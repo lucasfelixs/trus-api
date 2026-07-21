@@ -25,8 +25,15 @@ export class ItineraryRepository {
     });
   }
 
-  async findAllByTripId(tripId: string): Promise<Itinerary[]> {
+  async findAllByTripId(tripId: string): Promise<ItineraryWithTripOwner[]> {
     return await this.prisma.itinerary.findMany({
+      include: {
+        trip: {
+          select: {
+            userId: true,
+          },
+        },
+      },
       where: { tripId },
     });
   }
