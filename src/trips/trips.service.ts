@@ -11,10 +11,7 @@ import { TripsRepository } from './trips.repository';
 export class TripsService {
   constructor(private readonly tripsRepository: TripsRepository) {}
 
-  private async findOwnedOrThrow(
-    tripId: string,
-    userId: string,
-  ): Promise<Trip> {
+  async verifyOwnership(tripId: string, userId: string): Promise<Trip> {
     const trip = await this.tripsRepository.findById(tripId);
 
     if (!trip || trip.userId !== userId) {
@@ -35,7 +32,7 @@ export class TripsService {
   }
 
   async findById(userId: string, tripId: string): Promise<TripResponseDto> {
-    const trip = await this.findOwnedOrThrow(tripId, userId);
+    const trip = await this.verifyOwnership(tripId, userId);
 
     return plainToInstance(TripResponseDto, trip, {
       excludeExtraneousValues: true,
@@ -55,7 +52,7 @@ export class TripsService {
     tripId: string,
     dto: UpdateTripDto,
   ): Promise<TripResponseDto> {
-    await this.findOwnedOrThrow(tripId, userId);
+    await this.verifyOwnership(tripId, userId);
 
     const trip = await this.tripsRepository.update(tripId, dto);
 
@@ -65,7 +62,7 @@ export class TripsService {
   }
 
   async delete(userId: string, tripId: string): Promise<void> {
-    await this.findOwnedOrThrow(tripId, userId);
+    await this.verifyOwnership(tripId, userId);
 
     await this.tripsRepository.delete(tripId);
   }

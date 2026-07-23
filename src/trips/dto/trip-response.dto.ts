@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Transform } from 'class-transformer';
-
-const toIsoString = ({ value }: { value: Date }): string => value.toISOString();
+import { toIsoString } from '../../common/utils/helpers';
 
 export class TripResponseDto {
   @ApiProperty({
