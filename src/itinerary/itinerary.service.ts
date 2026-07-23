@@ -4,8 +4,11 @@ import { ItineraryNotFoundException } from '../common/exceptions/itinerary-not-f
 import { CreateItineraryDto } from './dto/create-itinerary.dto';
 import { UpdateItineraryDto } from './dto/update-itinerary.dto';
 import { ItineraryResponseDto } from './dto/itinerary-response.dto';
-import { ItineraryRepository } from './itinerary.repository';
-import type { TripsService } from 'src/trips/trips.service';
+import {
+  ItineraryRepository,
+  ItineraryWithTripOwner,
+} from './itinerary.repository';
+import { TripsService } from '../trips/trips.service';
 
 @Injectable()
 export class ItineraryService {
@@ -13,6 +16,19 @@ export class ItineraryService {
     private readonly itineraryRepository: ItineraryRepository,
     private readonly tripsService: TripsService,
   ) {}
+
+  private async verifyOwnership(
+    itineraryId: string,
+    userId: string,
+  ): Promise<ItineraryWithTripOwner> {
+    const itinerary = await this.itineraryRepository.findById(itineraryId);
+
+    if (!itinerary || itinerary.trip.userId !== userId) {
+      throw new ItineraryNotFoundException(itineraryId);
+    }
+
+    return itinerary;
+  }
 
   async findAllByTripId(
     tripId: string,
@@ -33,15 +49,36 @@ export class ItineraryService {
     itineraryId: string,
     userId: string,
   ): Promise<ItineraryResponseDto> {
-    const itinerary = await this.itineraryRepository.findById(itineraryId);
+    const itinerary = await this.verifyOwnership(itineraryId, userId);
 
-    if (!itinerary || itinerary.trip.userId !== userId) {
-      throw new ItineraryNotFoundException(itineraryId);
+    return plainToInstance(ItineraryResponseDto, itinerary, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async findByShareToken(shareToken: string): Promise<ItineraryResponseDto> {
+    const itinerary =
+      await this.itineraryRepository.findByShareToken(shareToken);
+
+    if (!itinerary) {
+      throw new ItineraryNotFoundException(shareToken);
     }
 
     return plainToInstance(ItineraryResponseDto, itinerary, {
       excludeExtraneousValues: true,
     });
+  }
+
+  async publishItinerary(itineraryId: string, userId: string): Promise<void> {
+    await this.verifyOwnership(itineraryId, userId);
+
+    await this.itineraryRepository.publishItinerary(itineraryId);
+  }
+
+  async unpublishItinerary(itineraryId: string, userId: string): Promise<void> {
+    await this.verifyOwnership(itineraryId, userId);
+
+    await this.itineraryRepository.unpublishItinerary(itineraryId);
   }
 
   async create(
@@ -63,11 +100,7 @@ export class ItineraryService {
     userId: string,
     dto: UpdateItineraryDto,
   ): Promise<ItineraryResponseDto> {
-    const itinerary = await this.itineraryRepository.findById(itineraryId);
-
-    if (!itinerary || itinerary.trip.userId !== userId) {
-      throw new ItineraryNotFoundException(itineraryId);
-    }
+    await this.verifyOwnership(itineraryId, userId);
 
     const updated = await this.itineraryRepository.update(itineraryId, dto);
 
@@ -77,11 +110,7 @@ export class ItineraryService {
   }
 
   async delete(itineraryId: string, userId: string): Promise<void> {
-    const itinerary = await this.itineraryRepository.findById(itineraryId);
-
-    if (!itinerary || itinerary.trip.userId !== userId) {
-      throw new ItineraryNotFoundException(itineraryId);
-    }
+    await this.verifyOwnership(itineraryId, userId);
 
     await this.itineraryRepository.delete(itineraryId);
   }

@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateItineraryDto } from './dto/create-itinerary.dto';
 import { UpdateItineraryDto } from './dto/update-itinerary.dto';
 
-type ItineraryWithTripOwner = Prisma.ItineraryGetPayload<{
+export type ItineraryWithTripOwner = Prisma.ItineraryGetPayload<{
   include: { trip: { select: { userId: true } } };
 }>;
 
@@ -13,7 +13,7 @@ export class ItineraryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<ItineraryWithTripOwner | null> {
-    return await this.prisma.itinerary.findUnique({
+    return this.prisma.itinerary.findUnique({
       include: {
         trip: {
           select: {
@@ -26,7 +26,7 @@ export class ItineraryRepository {
   }
 
   async findAllByTripId(tripId: string): Promise<ItineraryWithTripOwner[]> {
-    return await this.prisma.itinerary.findMany({
+    return this.prisma.itinerary.findMany({
       include: {
         trip: {
           select: {
@@ -38,8 +38,28 @@ export class ItineraryRepository {
     });
   }
 
+  async findByShareToken(shareToken: string): Promise<Itinerary | null> {
+    return this.prisma.itinerary.findUnique({
+      where: { shareToken, publishedAt: { not: null } },
+    });
+  }
+
+  async publishItinerary(itineraryId: string): Promise<Itinerary> {
+    return this.prisma.itinerary.update({
+      where: { id: itineraryId },
+      data: { publishedAt: new Date() },
+    });
+  }
+
+  async unpublishItinerary(itineraryId: string): Promise<Itinerary> {
+    return this.prisma.itinerary.update({
+      where: { id: itineraryId },
+      data: { publishedAt: null },
+    });
+  }
+
   async create(tripId: string, dto: CreateItineraryDto): Promise<Itinerary> {
-    return await this.prisma.itinerary.create({
+    return this.prisma.itinerary.create({
       data: {
         tripId,
         title: dto.title,
@@ -49,7 +69,7 @@ export class ItineraryRepository {
   }
 
   async update(id: string, dto: UpdateItineraryDto): Promise<Itinerary> {
-    return await this.prisma.itinerary.update({
+    return this.prisma.itinerary.update({
       where: { id },
       data: {
         ...(dto.title !== undefined && { title: dto.title }),

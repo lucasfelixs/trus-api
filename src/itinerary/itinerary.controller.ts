@@ -26,7 +26,7 @@ import { ItineraryResponseDto } from './dto/itinerary-response.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ItineraryService } from './itinerary.service';
 
-@ApiTags('Trips')
+@ApiTags('Itineraries')
 @ApiCookieAuth()
 @UseGuards(JwtAuthGuard)
 @Controller()
@@ -87,6 +87,72 @@ export class ItineraryController {
     return this.itineraryService.findById(itineraryId, user.id);
   }
 
+  @ApiOperation({ summary: 'Publish an itinerary' })
+  @ApiResponse({
+    status: 200,
+    description: 'Itinerary published successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Itinerary not found or not owned by the current user',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  @ApiParam({
+    name: 'itineraryId',
+    description: 'ID of the itinerary to publish',
+  })
+  @Patch('itineraries/:itineraryId/publish')
+  publishItinerary(
+    @Param('itineraryId', ParseUUIDPipe) itineraryId: string,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    return this.itineraryService.publishItinerary(itineraryId, user.id);
+  }
+
+  @ApiOperation({ summary: 'Unpublish an itinerary' })
+  @ApiResponse({
+    status: 200,
+    description: 'Itinerary unpublished successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Itinerary not found or not owned by the current user',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  @ApiParam({
+    name: 'itineraryId',
+    description: 'ID of the itinerary to unpublish',
+  })
+  @Patch('itineraries/:itineraryId/unpublish')
+  unpublishItinerary(
+    @Param('itineraryId', ParseUUIDPipe) itineraryId: string,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    return this.itineraryService.unpublishItinerary(itineraryId, user.id);
+  }
+
   @ApiOperation({ summary: 'Create a new itinerary for a trip' })
   @ApiResponse({
     status: 201,
@@ -94,7 +160,11 @@ export class ItineraryController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid input data or trip not found/owned by user',
+    description: 'Invalid input data',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Trip not found or not owned by the current user',
   })
   @ApiParam({
     name: 'tripId',
@@ -116,7 +186,11 @@ export class ItineraryController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid input data or itinerary not found/owned by user',
+    description: 'Invalid input data',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Itinerary not found or not owned by the current user',
   })
   @ApiParam({
     name: 'itineraryId',
@@ -137,7 +211,7 @@ export class ItineraryController {
     description: 'Itinerary deleted successfully',
   })
   @ApiResponse({
-    status: 400,
+    status: 404,
     description: 'Itinerary not found or not owned by the current user',
   })
   @ApiResponse({
