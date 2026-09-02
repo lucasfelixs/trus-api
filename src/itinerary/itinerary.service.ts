@@ -17,7 +17,7 @@ export class ItineraryService {
     private readonly tripsService: TripsService,
   ) {}
 
-  private async verifyOwnership(
+  async verifyOwnership(
     itineraryId: string,
     userId: string,
   ): Promise<ItineraryWithTripOwner> {

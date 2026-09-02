@@ -9,6 +9,6 @@ import { SharedItineraryController } from './shared-itinerary.controller';
   imports: [TripsModule],
   controllers: [ItineraryController, SharedItineraryController],
   providers: [ItineraryService, ItineraryRepository],
-  exports: [],
+  exports: [ItineraryService],
 })
 export class ItineraryModule {}
