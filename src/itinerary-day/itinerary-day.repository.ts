@@ -1,8 +1,10 @@
-import type { ItineraryDay } from '@prisma/client';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { CreateItineraryDayDto } from './dto/create-itinerary-day.dto';
-import type { UpdateItineraryDayDto } from './dto/update-itinerary-day.dto';
+import { Injectable } from '@nestjs/common';
+import { ItineraryDay } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateItineraryDayDto } from './dto/create-itinerary-day.dto';
+import { UpdateItineraryDayDto } from './dto/update-itinerary-day.dto';
 
+@Injectable()
 export class ItineraryDayRepository {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -25,8 +27,8 @@ export class ItineraryDayRepository {
     return this.prisma.itineraryDay.create({
       data: {
         itineraryId,
-        title: dto.title,
-        date: dto.date,
+        title: dto.title ?? null,
+        date: new Date(dto.date),
       },
     });
   }
@@ -36,13 +38,13 @@ export class ItineraryDayRepository {
       where: { id },
       data: {
         ...(dto.title !== undefined && { title: dto.title }),
-        ...(dto.date !== undefined && { date: dto.date }),
+        ...(dto.date !== undefined && { date: new Date(dto.date) }),
       },
     });
   }
 
-  async delete(id: string): Promise<ItineraryDay> {
-    return this.prisma.itineraryDay.delete({
+  async delete(id: string): Promise<void> {
+    await this.prisma.itineraryDay.delete({
       where: { id },
     });
   }

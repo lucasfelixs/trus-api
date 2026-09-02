@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Transform } from 'class-transformer';
-import { toIsoString } from 'src/common/utils/helpers';
+import { toIsoString } from '../../common/utils/helpers';
 
 export class ItineraryDayResponseDto {
   @ApiProperty({
@@ -10,7 +10,7 @@ export class ItineraryDayResponseDto {
   @Expose()
   declare readonly id: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The title of the itinerary day',
     example: 'Day 1: Arrival and City Tour',
   })
@@ -19,10 +19,13 @@ export class ItineraryDayResponseDto {
 
   @ApiProperty({
     description: 'The date of the itinerary day',
-    example: '2023-01-01',
+    example: '2023-01-01T00:00:00.000Z',
+    type: 'string',
+    format: 'date-time',
   })
   @Expose()
-  declare readonly date: string | null;
+  @Transform(toIsoString)
+  declare readonly date: string;
 
   @ApiProperty({
     description: 'The creation date of the itinerary day',
