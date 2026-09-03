@@ -8,6 +8,7 @@ import { TripsModule } from './trips/trips.module';
 import { ItineraryModule } from './itinerary/itinerary.module';
 import { ItineraryDayModule } from './itinerary-day/itinerary-day.module';
 import { ItineraryStopModule } from './itinerary-stop/itinerary-stop.module';
+import { SavedItineraryModule } from './saved-itinerary/saved-itinerary.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ItineraryStopModule } from './itinerary-stop/itinerary-stop.module';
     ItineraryModule,
     ItineraryDayModule,
     ItineraryStopModule,
+    SavedItineraryModule,
   ],
 })
 export class AppModule {}

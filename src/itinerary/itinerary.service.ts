@@ -56,6 +56,18 @@ export class ItineraryService {
     });
   }
 
+  async verifyPublished(itineraryId: string): Promise<ItineraryResponseDto> {
+    const itinerary = await this.itineraryRepository.findById(itineraryId);
+
+    if (!itinerary || !itinerary.publishedAt) {
+      throw new ItineraryNotFoundException(itineraryId);
+    }
+
+    return plainToInstance(ItineraryResponseDto, itinerary, {
+      excludeExtraneousValues: true,
+    });
+  }
+
   async findByShareToken(shareToken: string): Promise<ItineraryResponseDto> {
     const itinerary =
       await this.itineraryRepository.findByShareToken(shareToken);
