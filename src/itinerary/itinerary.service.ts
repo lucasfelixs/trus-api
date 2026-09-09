@@ -50,10 +50,19 @@ export class ItineraryService {
     userId: string,
   ): Promise<ItineraryResponseDto> {
     const itinerary = await this.verifyOwnership(itineraryId, userId);
+    const stats = await this.itineraryRepository.getReviewStats(itineraryId);
 
-    return plainToInstance(ItineraryResponseDto, itinerary, {
-      excludeExtraneousValues: true,
-    });
+    return plainToInstance(
+      ItineraryResponseDto,
+      { ...itinerary, ...stats },
+      { excludeExtraneousValues: true },
+    );
+  }
+
+  async isOwnedBy(itineraryId: string, userId: string): Promise<boolean> {
+    const itinerary = await this.itineraryRepository.findById(itineraryId);
+
+    return itinerary?.trip.userId === userId;
   }
 
   async verifyPublished(itineraryId: string): Promise<ItineraryResponseDto> {
@@ -76,9 +85,13 @@ export class ItineraryService {
       throw new ItineraryNotFoundException(shareToken);
     }
 
-    return plainToInstance(ItineraryResponseDto, itinerary, {
-      excludeExtraneousValues: true,
-    });
+    const stats = await this.itineraryRepository.getReviewStats(itinerary.id);
+
+    return plainToInstance(
+      ItineraryResponseDto,
+      { ...itinerary, ...stats },
+      { excludeExtraneousValues: true },
+    );
   }
 
   async publishItinerary(itineraryId: string, userId: string): Promise<void> {

@@ -44,6 +44,18 @@ export class ItineraryRepository {
     });
   }
 
+  async getReviewStats(
+    itineraryId: string,
+  ): Promise<{ averageRating: number | null; reviewCount: number }> {
+    const result = await this.prisma.review.aggregate({
+      where: { itineraryId },
+      _avg: { rating: true },
+      _count: true,
+    });
+
+    return { averageRating: result._avg.rating, reviewCount: result._count };
+  }
+
   async publishItinerary(itineraryId: string): Promise<Itinerary> {
     return this.prisma.itinerary.update({
       where: { id: itineraryId },
