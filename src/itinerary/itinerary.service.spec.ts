@@ -55,6 +55,7 @@ describe('ItineraryService', () => {
             findById: jest.fn(),
             findAllByTripId: jest.fn(),
             findByShareToken: jest.fn(),
+            getReviewStats: jest.fn(),
             publishItinerary: jest.fn(),
             unpublishItinerary: jest.fn(),
             create: jest.fn(),
@@ -132,10 +133,18 @@ describe('ItineraryService', () => {
     it('returns the itinerary when the user owns the trip', async () => {
       const itinerary = buildItinerary();
       repo.findById.mockResolvedValue(itinerary);
+      repo.getReviewStats.mockResolvedValue({
+        averageRating: 4.5,
+        reviewCount: 2,
+      });
 
       const result = await service.findById('itinerary-id', 'user-id');
 
-      expect(result).toEqual(expectedResponse(itinerary));
+      expect(result).toEqual({
+        ...expectedResponse(itinerary),
+        averageRating: 4.5,
+        reviewCount: 2,
+      });
     });
   });
 
@@ -153,10 +162,44 @@ describe('ItineraryService', () => {
         publishedAt: new Date('2026-01-02T00:00:00Z'),
       });
       repo.findByShareToken.mockResolvedValue(itinerary);
+      repo.getReviewStats.mockResolvedValue({
+        averageRating: null,
+        reviewCount: 0,
+      });
 
       const result = await service.findByShareToken('share-token');
 
-      expect(result).toEqual(expectedResponse(itinerary));
+      expect(result).toEqual({
+        ...expectedResponse(itinerary),
+        averageRating: null,
+        reviewCount: 0,
+      });
+    });
+  });
+
+  describe('isOwnedBy', () => {
+    it('returns false when the itinerary does not exist', async () => {
+      repo.findById.mockResolvedValue(null);
+
+      const result = await service.isOwnedBy('itinerary-id', 'user-id');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the itinerary belongs to another user', async () => {
+      repo.findById.mockResolvedValue(buildItinerary({}, 'other-user-id'));
+
+      const result = await service.isOwnedBy('itinerary-id', 'user-id');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when the itinerary belongs to the user', async () => {
+      repo.findById.mockResolvedValue(buildItinerary({}, 'user-id'));
+
+      const result = await service.isOwnedBy('itinerary-id', 'user-id');
+
+      expect(result).toBe(true);
     });
   });
 

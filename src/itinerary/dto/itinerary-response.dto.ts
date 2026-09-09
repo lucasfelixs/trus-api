@@ -61,4 +61,21 @@ export class ItineraryResponseDto {
   @Expose()
   @Transform(toIsoString)
   declare readonly publishedAt: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Average rating (1-5) across all reviews, null if there are none. Only present when fetching a single itinerary.',
+    example: 4.5,
+    nullable: true,
+  })
+  @Expose()
+  declare readonly averageRating?: number | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Total number of reviews. Only present when fetching a single itinerary.',
+    example: 12,
+  })
+  @Expose()
+  declare readonly reviewCount?: number;
 }
