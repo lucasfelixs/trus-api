@@ -27,6 +27,15 @@ jobs:
 
     env:
       TEST_DATABASE_URL: postgresql://trus:trus@localhost:55432/trus_test
+      DIRECT_URL: postgresql://trus:trus@localhost:55432/trus_test
+      JWT_ACCESS_SECRET: ci-dummy-access-secret
+      JWT_ACCESS_EXPIRES_IN_SECONDS: 900
+      JWT_REFRESH_SECRET: ci-dummy-refresh-secret
+      JWT_REFRESH_EXPIRES_IN_SECONDS: 604800
+      GOOGLE_CLIENT_ID: ci-dummy-client-id
+      GOOGLE_CLIENT_SECRET: ci-dummy-client-secret
+      GOOGLE_CALLBACK_URL: http://localhost:3000/auth/google/callback
+      FRONTEND_URL: http://localhost:5173
 
     steps:
       - uses: actions/checkout@v4
