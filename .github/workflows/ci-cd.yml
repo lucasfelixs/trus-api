@@ -1,0 +1,77 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: trus
+          POSTGRES_PASSWORD: trus
+          POSTGRES_DB: trus_test
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgresql://trus:trus@localhost:55432/trus_test
+      DIRECT_URL: postgresql://trus:trus@localhost:55432/trus_test
+      JWT_ACCESS_SECRET: ci-dummy-access-secret
+      JWT_ACCESS_EXPIRES_IN_SECONDS: 900
+      JWT_REFRESH_SECRET: ci-dummy-refresh-secret
+      JWT_REFRESH_EXPIRES_IN_SECONDS: 604800
+      GOOGLE_CLIENT_ID: ci-dummy-client-id
+      GOOGLE_CLIENT_SECRET: ci-dummy-client-secret
+      GOOGLE_CALLBACK_URL: http://localhost:3000/auth/google/callback
+      FRONTEND_URL: http://localhost:5173
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npx eslint "{src,apps,libs,test}/**/*.ts"
+
+      - name: Typecheck
+        run: npx tsc --noEmit -p tsconfig.json
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Apply test database migrations
+        run: npm run db:test:migrate
+
+      - name: Integration tests
+        run: npm run test:integration
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Railway
+        run: railway up --service=${{ secrets.RAILWAY_SERVICE }}

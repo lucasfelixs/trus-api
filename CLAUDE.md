@@ -19,11 +19,11 @@ Agent instructions for working on this codebase. Read this before touching any f
 | Framework | NestJS | Modules, DI, decorators — standard NestJS patterns |
 | Language | TypeScript | Strict mode — see tsconfig requirements below |
 | ORM | Prisma | Schema-first, migrations via `prisma migrate` |
-| Database | PostgreSQL (Neon) | Serverless Postgres. PostGIS for spatial queries |
+| Database | PostgreSQL (Supabase) | Serverless Postgres. PostGIS for spatial queries |
 | Auth | Passport.js + JWT | Google OAuth 2.0 + access/refresh token pattern |
 | Storage | AWS S3 | Presigned URLs — client uploads directly, backend stores key |
 | Email | To be defined | D-3 trip notifications |
-| Deploy | Railway (API) + Neon (DB) | |
+| Deploy | Railway (API) + Supabase (DB) + Cloudflare (DNS/domain) | |
 | Docs | Swagger (OpenAPI) | Auto-generated via `@nestjs/swagger` decorators |
 
 ---

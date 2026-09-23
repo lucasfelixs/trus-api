@@ -10,6 +10,7 @@ import { ItineraryDayModule } from './itinerary-day/itinerary-day.module';
 import { ItineraryStopModule } from './itinerary-stop/itinerary-stop.module';
 import { SavedItineraryModule } from './saved-itinerary/saved-itinerary.module';
 import { ReviewModule } from './review/review.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ReviewModule } from './review/review.module';
     ItineraryStopModule,
     SavedItineraryModule,
     ReviewModule,
+    HealthModule,
   ],
 })
 export class AppModule {}

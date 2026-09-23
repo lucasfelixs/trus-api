@@ -11,6 +11,9 @@ export class EnvironmentVariables {
   @IsString()
   declare DATABASE_URL: string;
 
+  @IsString()
+  declare DIRECT_URL: string;
+
   @IsOptional()
   @IsString()
   declare TEST_DATABASE_URL?: string;

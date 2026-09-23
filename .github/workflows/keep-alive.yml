@@ -1,0 +1,15 @@
+name: Keep Supabase alive
+
+on:
+  schedule:
+    # Mondays and Thursdays at 06:00 UTC — keeps the gap between pings under
+    # Supabase's ~7 day free-tier inactivity pause threshold.
+    - cron: '0 6 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping production health endpoint
+        run: curl --fail --silent --show-error "${{ secrets.PRODUCTION_HEALTH_URL }}"
