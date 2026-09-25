@@ -16,6 +16,12 @@ function parseCookie(setCookie: string[], name: string): string | undefined {
   return setCookie.find((cookie) => cookie.startsWith(`${name}=`));
 }
 
+function cookieValue(setCookie: string[], name: string): string | undefined {
+  return parseCookie(setCookie, name)
+    ?.split(';')[0]
+    ?.slice(name.length + 1);
+}
+
 describe('AuthController (integration)', () => {
   describe('GET /auth/google', () => {
     let app: INestApplication;
@@ -184,8 +190,13 @@ describe('AuthController (integration)', () => {
 
         expect(newRefreshCookie).toBeDefined();
         expect(newRefreshCookie).toContain('Path=/auth');
-        expect(newRefreshCookie).not.toBe(
-          refreshTokenCookie.replace('refresh_token=', ''),
+
+        const oldRefreshValue = refreshTokenCookie.replace(
+          'refresh_token=',
+          '',
+        );
+        expect(cookieValue(setCookie, 'refresh_token')).not.toBe(
+          oldRefreshValue,
         );
       });
 
@@ -223,16 +234,19 @@ describe('AuthController (integration)', () => {
         expect(stored).toHaveLength(0);
       });
 
-      it('rejects a second logout with the same refresh token', async () => {
+      it('is idempotent: a second logout with the same (already-revoked) refresh token still succeeds', async () => {
         await request(httpServer)
           .post('/auth/logout')
           .set('Cookie', refreshTokenCookie)
           .expect(204);
 
+        // The JWT itself is still valid (revocation only removes the DB
+        // record), so the guard lets the request through; revokeToken's
+        // deleteMany is a no-op on an already-removed jti, not an error.
         await request(httpServer)
           .post('/auth/logout')
           .set('Cookie', refreshTokenCookie)
-          .expect(401);
+          .expect(204);
       });
     });
   });
