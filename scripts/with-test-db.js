@@ -19,6 +19,7 @@ if (!ALLOWED_HOSTS.has(testHost)) {
 }
 
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
+process.env.DIRECT_URL = process.env.TEST_DATABASE_URL;
 
 const { execSync } = require('child_process');
 const command = process.argv.slice(2).join(' ');

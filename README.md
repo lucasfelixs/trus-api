@@ -53,7 +53,7 @@ npm run start:dev
 
 ### Environment variables
 
-Copy the variables below into a `.env` file at the project root. All of them are validated at startup — the app refuses to boot if one is missing.
+Copy the variables below into a `.env` file at the project root. All of them except `TEST_DATABASE_URL` (optional) and `NODE_ENV` (read directly, outside the validated schema) are required and validated at startup — the app refuses to boot if one is missing.
 
 | Variable | Notes |
 |---|---|
