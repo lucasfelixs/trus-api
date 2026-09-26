@@ -22,6 +22,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:integration": "node scripts/with-test-db.js jest --config ./test/jest-integration.json --runInBand",
+    "test:e2e": "node scripts/with-test-db.js jest --config ./test/jest-e2e.json --runInBand",
     "db:test:up": "docker compose up -d postgres-test",
     "db:test:down": "docker compose down",
     "db:test:migrate": "node scripts/with-test-db.js npx prisma migrate deploy"
