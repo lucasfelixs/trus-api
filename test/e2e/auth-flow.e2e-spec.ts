@@ -85,10 +85,16 @@ describe('Auth flow (e2e)', () => {
 
     // 2. The access cookie from login authenticates a real protected call.
     await request(httpServer)
-      .get('/trips')
+      .get('/users/me')
       .set('Cookie', cookieHeaderFrom(loginCookies!, ['access_token']))
       .expect(200)
-      .expect([]);
+      .expect({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt.toISOString(),
+      });
 
     // 3. The refresh cookie from login rotates the session.
     const refreshResponse = await request(httpServer)
@@ -103,10 +109,16 @@ describe('Auth flow (e2e)', () => {
 
     // 4. The freshly rotated access cookie still authenticates.
     await request(httpServer)
-      .get('/trips')
+      .get('/users/me')
       .set('Cookie', cookieHeaderFrom(refreshedCookies!, ['access_token']))
       .expect(200)
-      .expect([]);
+      .expect({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt.toISOString(),
+      });
 
     // 5. Logout revokes the rotated refresh token.
     await request(httpServer)
