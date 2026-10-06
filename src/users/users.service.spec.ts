@@ -74,4 +74,18 @@ describe('UsersService', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('getCurrentUser', () => {
+    it('maps the authenticated user to the public response contract', () => {
+      const result = service.getCurrentUser(buildUser());
+
+      expect(result).toEqual({
+        id: 'user-id',
+        email: 'test@example.com',
+        name: 'Test User',
+        avatarUrl: null,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      });
+    });
+  });
 });
