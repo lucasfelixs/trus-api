@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
+import { Prisma, Trip } from '@prisma/client';
 import { AppModule } from '../app.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
@@ -14,7 +15,9 @@ assertLocalDatabase(process.env.DATABASE_URL);
 interface TripApiResponse {
   id: string;
   title: string;
-  destination: string | null;
+  destination: string;
+  itineraryCount: number;
+  publishedItineraryCount: number;
 }
 
 describe('TripsController (integration)', () => {
@@ -69,6 +72,21 @@ describe('TripsController (integration)', () => {
     await app.close();
   });
 
+  async function createTrip(
+    overrides: Partial<Prisma.TripUncheckedCreateInput> = {},
+  ): Promise<Trip> {
+    return prisma.trip.create({
+      data: {
+        userId,
+        title: 'My trip',
+        destination: 'Lisbon',
+        startDate: new Date('2026-03-01'),
+        endDate: new Date('2026-03-05'),
+        ...overrides,
+      },
+    });
+  }
+
   async function createOtherUserTrip(): Promise<{
     otherUserId: string;
     tripId: string;
@@ -84,6 +102,7 @@ describe('TripsController (integration)', () => {
       data: {
         userId: otherUser.id,
         title: 'Not yours',
+        destination: 'Lisbon',
         startDate: new Date('2026-01-01'),
         endDate: new Date('2026-01-05'),
       },
@@ -102,6 +121,7 @@ describe('TripsController (integration)', () => {
         data: {
           userId,
           title: 'My trip',
+          destination: 'Lisbon',
           startDate: new Date('2026-03-01'),
           endDate: new Date('2026-03-05'),
         },
@@ -117,6 +137,145 @@ describe('TripsController (integration)', () => {
       expect(body).toHaveLength(1);
       expect(body[0]).toMatchObject({ title: 'My trip' });
     });
+
+    it('returns an empty array when the user has no trips', async () => {
+      const response = await request(httpServer)
+        .get('/trips')
+        .set('Cookie', accessTokenCookie)
+        .expect(200);
+
+      expect(response.body).toEqual([]);
+    });
+
+    it('returns zeroed counts for a trip without itineraries', async () => {
+      await createTrip({ title: 'Empty trip' });
+
+      const response = await request(httpServer)
+        .get('/trips')
+        .set('Cookie', accessTokenCookie)
+        .expect(200);
+
+      const body = response.body as TripApiResponse[];
+      expect(body[0]).toMatchObject({
+        title: 'Empty trip',
+        itineraryCount: 0,
+        publishedItineraryCount: 0,
+      });
+    });
+
+    it('counts itineraries and published itineraries per trip', async () => {
+      const withItineraries = await createTrip({
+        title: 'Counted trip',
+        startDate: new Date('2026-03-01'),
+        endDate: new Date('2026-03-05'),
+      });
+      const withoutItineraries = await createTrip({
+        title: 'Lonely trip',
+        startDate: new Date('2026-04-01'),
+        endDate: new Date('2026-04-05'),
+      });
+
+      await prisma.itinerary.createMany({
+        data: [
+          { tripId: withItineraries.id, title: 'Draft' },
+          {
+            tripId: withItineraries.id,
+            title: 'Published A',
+            publishedAt: new Date('2026-02-01'),
+          },
+          {
+            tripId: withItineraries.id,
+            title: 'Published B',
+            publishedAt: new Date('2026-02-02'),
+          },
+        ],
+      });
+
+      const response = await request(httpServer)
+        .get('/trips')
+        .set('Cookie', accessTokenCookie)
+        .expect(200);
+
+      const body = response.body as TripApiResponse[];
+      expect(body).toEqual([
+        expect.objectContaining({
+          id: withItineraries.id,
+          itineraryCount: 3,
+          publishedItineraryCount: 2,
+        }),
+        expect.objectContaining({
+          id: withoutItineraries.id,
+          itineraryCount: 0,
+          publishedItineraryCount: 0,
+        }),
+      ]);
+    });
+
+    it('does not count itineraries owned by another user', async () => {
+      const trip = await createTrip({ title: 'Mine' });
+      const { tripId: otherTripId } = await createOtherUserTrip();
+      await prisma.itinerary.create({
+        data: {
+          tripId: otherTripId,
+          title: 'Not mine',
+          publishedAt: new Date('2026-02-01'),
+        },
+      });
+
+      const response = await request(httpServer)
+        .get('/trips')
+        .set('Cookie', accessTokenCookie)
+        .expect(200);
+
+      const body = response.body as TripApiResponse[];
+      expect(body).toHaveLength(1);
+      expect(body[0]).toMatchObject({
+        id: trip.id,
+        itineraryCount: 0,
+        publishedItineraryCount: 0,
+      });
+    });
+
+    it('orders trips by start date ascending', async () => {
+      const later = await createTrip({
+        title: 'Later',
+        startDate: new Date('2026-09-01'),
+        endDate: new Date('2026-09-05'),
+      });
+      const earlier = await createTrip({
+        title: 'Earlier',
+        startDate: new Date('2026-01-01'),
+        endDate: new Date('2026-01-05'),
+      });
+
+      const response = await request(httpServer)
+        .get('/trips')
+        .set('Cookie', accessTokenCookie)
+        .expect(200);
+
+      const body = response.body as TripApiResponse[];
+      expect(body.map((trip) => trip.id)).toEqual([earlier.id, later.id]);
+    });
+
+    it('does not expose internal fields in the list payload', async () => {
+      await createTrip({ title: 'My trip' });
+
+      const response = await request(httpServer)
+        .get('/trips')
+        .set('Cookie', accessTokenCookie)
+        .expect(200);
+
+      const body = response.body as TripApiResponse[];
+      expect(Object.keys(body[0] ?? {}).sort()).toEqual([
+        'destination',
+        'endDate',
+        'id',
+        'itineraryCount',
+        'publishedItineraryCount',
+        'startDate',
+        'title',
+      ]);
+    });
   });
 
   describe('GET /trips/:tripId', () => {
@@ -125,6 +284,7 @@ describe('TripsController (integration)', () => {
         data: {
           userId,
           title: 'My trip',
+          destination: 'Lisbon',
           startDate: new Date('2026-03-01'),
           endDate: new Date('2026-03-05'),
         },
@@ -162,6 +322,7 @@ describe('TripsController (integration)', () => {
         .set('Cookie', accessTokenCookie)
         .send({
           title: 'Trip to Lisbon',
+          destination: 'Lisbon',
           startDate: '2026-08-01',
           endDate: '2026-08-10',
         })
@@ -184,12 +345,25 @@ describe('TripsController (integration)', () => {
         .expect(400);
     });
 
+    it('returns 400 when destination is missing', async () => {
+      await request(httpServer)
+        .post('/trips')
+        .set('Cookie', accessTokenCookie)
+        .send({
+          title: 'Trip to Lisbon',
+          startDate: '2026-08-01',
+          endDate: '2026-08-10',
+        })
+        .expect(400);
+    });
+
     it('returns 400 when the payload has unknown fields', async () => {
       await request(httpServer)
         .post('/trips')
         .set('Cookie', accessTokenCookie)
         .send({
           title: 'Trip to Lisbon',
+          destination: 'Lisbon',
           startDate: '2026-08-01',
           endDate: '2026-08-10',
           notAField: 'nope',
@@ -204,6 +378,7 @@ describe('TripsController (integration)', () => {
         data: {
           userId,
           title: 'Original title',
+          destination: 'Lisbon',
           startDate: new Date('2026-03-01'),
           endDate: new Date('2026-03-05'),
         },
@@ -246,6 +421,7 @@ describe('TripsController (integration)', () => {
         data: {
           userId,
           title: 'To be deleted',
+          destination: 'Lisbon',
           startDate: new Date('2026-03-01'),
           endDate: new Date('2026-03-05'),
         },

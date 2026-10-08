@@ -1,10 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateTripDto {
   @ApiProperty({
@@ -15,13 +10,13 @@ export class CreateTripDto {
   @IsString()
   declare readonly title: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'The destination of the trip',
     example: 'Paris',
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  declare readonly destination: string | undefined;
+  declare readonly destination: string;
 
   @ApiProperty({
     description: 'The start date of the trip',

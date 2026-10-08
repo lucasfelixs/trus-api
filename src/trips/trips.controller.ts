@@ -24,6 +24,7 @@ import { TripsService } from './trips.service';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { TripResponseDto } from './dto/trip-response.dto';
+import { TripSummaryResponseDto } from './dto/trip-summary-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Trips')
@@ -33,15 +34,27 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class TripsController {
   constructor(private readonly tripsService: TripsService) {}
 
-  @ApiOperation({ summary: 'Get all trips' })
-  @ApiResponse({ status: 200, description: 'Returns a list of trips' })
+  @ApiOperation({
+    summary: 'Get all trips of the current user, ordered by start date',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns a list of trips with itinerary counts',
+    type: TripSummaryResponseDto,
+    isArray: true,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
-  getTrips(@CurrentUser() user: User): Promise<TripResponseDto[]> {
+  getTrips(@CurrentUser() user: User): Promise<TripSummaryResponseDto[]> {
     return this.tripsService.findAll(user.id);
   }
 
   @ApiOperation({ summary: 'Get a trip by ID' })
-  @ApiResponse({ status: 200, description: 'Returns a trip by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns a trip by ID',
+    type: TripResponseDto,
+  })
   @ApiResponse({
     status: 404,
     description: 'Trip not found or not owned by the current user',
@@ -56,7 +69,11 @@ export class TripsController {
   }
 
   @ApiOperation({ summary: 'Create a new trip' })
-  @ApiResponse({ status: 201, description: 'Trip created successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'Trip created successfully',
+    type: TripResponseDto,
+  })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
@@ -70,7 +87,11 @@ export class TripsController {
   }
 
   @ApiOperation({ summary: 'Update a trip by ID' })
-  @ApiResponse({ status: 200, description: 'Trip updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Trip updated successfully',
+    type: TripResponseDto,
+  })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({

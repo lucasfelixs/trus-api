@@ -67,6 +67,7 @@ describe('SavedItineraryController (integration)', () => {
       data: {
         userId,
         title: 'Trip to Paris',
+        destination: 'Lisbon',
         startDate: new Date('2026-01-01'),
         endDate: new Date('2026-01-07'),
       },

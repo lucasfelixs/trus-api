@@ -41,7 +41,7 @@ Represents a travel experience. Holds the dates and top-level metadata.
 | id | uuid | PK |
 | userId | string | FK → User |
 | title | string | e.g. "Lisbon 2026" |
-| destination | string? | human-readable name for search/filter |
+| destination | string | required — human-readable name for search/filter and for the trip card in the frontend |
 | startDate | Date | used for D-3 email notifications |
 | endDate | Date | |
 | coverImageUrl | string? | S3 — phase 2 |

@@ -66,6 +66,7 @@ describe('ItineraryDayController (integration)', () => {
       data: {
         userId,
         title: 'Trip to Paris',
+        destination: 'Lisbon',
         startDate: new Date('2026-01-01'),
         endDate: new Date('2026-01-07'),
       },
@@ -100,6 +101,7 @@ describe('ItineraryDayController (integration)', () => {
       data: {
         userId: otherUser.id,
         title: 'Not yours',
+        destination: 'Lisbon',
         startDate: new Date('2026-01-01'),
         endDate: new Date('2026-01-05'),
       },

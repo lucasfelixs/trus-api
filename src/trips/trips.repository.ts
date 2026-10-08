@@ -4,6 +4,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 
+export interface TripWithCounts extends Trip {
+  readonly itineraryCount: number;
+  readonly publishedItineraryCount: number;
+}
+
 @Injectable()
 export class TripsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -14,10 +19,30 @@ export class TripsRepository {
     });
   }
 
-  async findAllByUserId(userId: string): Promise<Trip[]> {
-    return this.prisma.trip.findMany({
+  async findAllByUserId(userId: string): Promise<TripWithCounts[]> {
+    const trips = await this.prisma.trip.findMany({
       where: { userId },
+      orderBy: [{ startDate: 'asc' }, { id: 'asc' }],
+      include: {
+        _count: { select: { itineraries: true } },
+      },
     });
+
+    const publishedCounts = await this.prisma.itinerary.groupBy({
+      by: ['tripId'],
+      where: { trip: { userId }, publishedAt: { not: null } },
+      _count: true,
+    });
+
+    const publishedByTripId = new Map(
+      publishedCounts.map((group) => [group.tripId, group._count]),
+    );
+
+    return trips.map(({ _count, ...trip }) => ({
+      ...trip,
+      itineraryCount: _count.itineraries,
+      publishedItineraryCount: publishedByTripId.get(trip.id) ?? 0,
+    }));
   }
 
   async create(userId: string, dto: CreateTripDto): Promise<Trip> {
@@ -25,7 +50,7 @@ export class TripsRepository {
       data: {
         userId,
         title: dto.title,
-        destination: dto.destination ?? null,
+        destination: dto.destination,
         startDate: new Date(dto.startDate),
         endDate: new Date(dto.endDate),
       },

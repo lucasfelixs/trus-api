@@ -67,6 +67,7 @@ describe('Public itinerary share link (e2e)', () => {
       .set('Cookie', accessTokenCookie)
       .send({
         title: 'Trip to Lisbon',
+        destination: 'Lisbon',
         startDate: '2026-03-01',
         endDate: '2026-03-07',
       })
