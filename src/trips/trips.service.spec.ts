@@ -5,6 +5,8 @@ import type { Trip } from '@prisma/client';
 import type { CreateTripDto } from './dto/create-trip.dto';
 import type { UpdateTripDto } from './dto/update-trip.dto';
 import type { TripResponseDto } from './dto/trip-response.dto';
+import type { TripSummaryResponseDto } from './dto/trip-summary-response.dto';
+import type { TripWithCounts } from './trips.repository';
 
 const buildTrip = (overrides: Partial<Trip> = {}): Trip => ({
   id: 'trip-id',
@@ -17,6 +19,25 @@ const buildTrip = (overrides: Partial<Trip> = {}): Trip => ({
   createdAt: new Date('2026-01-01T00:00:00Z'),
   updatedAt: new Date('2026-01-01T00:00:00Z'),
   ...overrides,
+});
+
+const buildTripWithCounts = (
+  overrides: Partial<TripWithCounts> = {},
+): TripWithCounts => ({
+  ...buildTrip(),
+  itineraryCount: 0,
+  publishedItineraryCount: 0,
+  ...overrides,
+});
+
+const expectedSummary = (trip: TripWithCounts): TripSummaryResponseDto => ({
+  id: trip.id,
+  title: trip.title,
+  destination: trip.destination,
+  startDate: trip.startDate.toISOString(),
+  endDate: trip.endDate.toISOString(),
+  itineraryCount: trip.itineraryCount,
+  publishedItineraryCount: trip.publishedItineraryCount,
 });
 
 const expectedResponse = (trip: Trip): TripResponseDto => ({
@@ -83,13 +104,37 @@ describe('TripsService', () => {
   });
 
   describe('findAll', () => {
-    it('should return all trips for a user', async () => {
-      const trips = [buildTrip({ id: 'trip-1' }), buildTrip({ id: 'trip-2' })];
+    it('should return all trips for a user with itinerary counts', async () => {
+      const trips = [
+        buildTripWithCounts({
+          id: 'trip-1',
+          itineraryCount: 3,
+          publishedItineraryCount: 2,
+        }),
+        buildTripWithCounts({ id: 'trip-2' }),
+      ];
       repo.findAllByUserId.mockResolvedValue(trips);
 
       const result = await service.findAll('user-id');
 
-      expect(result).toEqual(trips.map(expectedResponse));
+      expect(result).toEqual(trips.map(expectedSummary));
+    });
+
+    it('should not leak internal fields in the summary payload', async () => {
+      repo.findAllByUserId.mockResolvedValue([buildTripWithCounts()]);
+
+      const [summary] = await service.findAll('user-id');
+
+      expect(summary).toBeDefined();
+      expect(Object.keys(summary as TripSummaryResponseDto).sort()).toEqual([
+        'destination',
+        'endDate',
+        'id',
+        'itineraryCount',
+        'publishedItineraryCount',
+        'startDate',
+        'title',
+      ]);
     });
 
     it('should return an empty array when the user has no trips', async () => {

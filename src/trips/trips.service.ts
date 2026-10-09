@@ -5,6 +5,7 @@ import { TripNotFoundException } from '../common/exceptions/trip-not-found.excep
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { TripResponseDto } from './dto/trip-response.dto';
+import { TripSummaryResponseDto } from './dto/trip-summary-response.dto';
 import { TripsRepository } from './trips.repository';
 
 @Injectable()
@@ -21,11 +22,11 @@ export class TripsService {
     return trip;
   }
 
-  async findAll(userId: string): Promise<TripResponseDto[]> {
+  async findAll(userId: string): Promise<TripSummaryResponseDto[]> {
     const trips = await this.tripsRepository.findAllByUserId(userId);
 
     return trips.map((trip) =>
-      plainToInstance(TripResponseDto, trip, {
+      plainToInstance(TripSummaryResponseDto, trip, {
         excludeExtraneousValues: true,
       }),
     );

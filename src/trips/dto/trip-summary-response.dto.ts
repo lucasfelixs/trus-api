@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Transform } from 'class-transformer';
 import { toIsoString } from '../../common/utils/helpers';
 
-export class TripResponseDto {
+export class TripSummaryResponseDto {
   @ApiProperty({
     description: 'The unique identifier of the trip',
     example: '550e8400-e29b-41d4-a716-446655440000',
@@ -26,7 +26,7 @@ export class TripResponseDto {
 
   @ApiProperty({
     description: 'The start date of the trip',
-    example: '2023-01-01',
+    example: '2026-05-01T00:00:00.000Z',
     type: 'string',
     format: 'date-time',
   })
@@ -36,7 +36,7 @@ export class TripResponseDto {
 
   @ApiProperty({
     description: 'The end date of the trip',
-    example: '2023-01-07',
+    example: '2026-05-08T00:00:00.000Z',
     type: 'string',
     format: 'date-time',
   })
@@ -45,22 +45,16 @@ export class TripResponseDto {
   declare readonly endDate: string;
 
   @ApiProperty({
-    description: 'The date and time when the trip was created',
-    example: '2023-01-01T12:00:00Z',
-    type: 'string',
-    format: 'date-time',
+    description: 'How many itineraries belong to the trip',
+    example: 3,
   })
   @Expose()
-  @Transform(toIsoString)
-  declare readonly createdAt: string;
+  declare readonly itineraryCount: number;
 
   @ApiProperty({
-    description: 'The date and time when the trip was last updated',
-    example: '2023-01-02T12:00:00Z',
-    type: 'string',
-    format: 'date-time',
+    description: 'How many of those itineraries are published',
+    example: 2,
   })
   @Expose()
-  @Transform(toIsoString)
-  declare readonly updatedAt: string;
+  declare readonly publishedItineraryCount: number;
 }
